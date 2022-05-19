@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyfluent-iterables"
-version = "0.1.0"
+version = "1.0.1"
 description = "Fluent API wrapper for Python collections"
 authors = ["Jan Michelfeit"]
 license = "MIT License"
@@ -22,7 +22,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.bumpver]
-current_version = "1.0.0"
+current_version = "1.0.1"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "bump version {old_version} -> {new_version}"
 commit = true
