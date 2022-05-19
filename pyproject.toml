@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "pyfluent-iterables"
+version = "0.1.0"
+description = "Fluent API wrapper for Python collections"
+authors = ["Jan Michelfeit"]
+license = "MIT License"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+[tool.poetry.dev-dependencies]
+mypy = "^0.950"
+pytest = "^7.1.2"
+bumpver = "^2022.1116"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
