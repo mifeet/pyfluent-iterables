@@ -4,6 +4,10 @@ version = "0.1.0"
 description = "Fluent API wrapper for Python collections"
 authors = ["Jan Michelfeit"]
 license = "MIT License"
+repository = 'https://github.com/mifeet/pyfluent-iterables'
+documentation = "https://github.com/mifeet/pyfluent-iterables/blob/main/README.md"
+readme = 'README.md'
+keywords = ["wrapper", "fluent", "interface", "functional"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
@@ -16,3 +20,18 @@ bumpver = "^2022.1116"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.bumpver]
+current_version = "1.0.0"
+version_pattern = "MAJOR.MINOR.PATCH"
+commit_message = "bump version {old_version} -> {new_version}"
+commit = true
+tag = true
+push = false
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = [
+    'current_version = "{version}"',
+    'version = "{version}"',
+]
+"pyfluent_iterables/__init__.py" = ["{version}"]
