@@ -7,7 +7,7 @@ license = "MIT License"
 repository = 'https://github.com/mifeet/pyfluent-iterables'
 documentation = "https://github.com/mifeet/pyfluent-iterables/blob/main/README.md"
 readme = 'README.md'
-keywords = ["wrapper", "fluent", "interface", "functional"]
+keywords = ["wrapper", "fluent", "interface", "functional", "collections"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
