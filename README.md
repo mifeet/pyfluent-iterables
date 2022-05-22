@@ -175,7 +175,7 @@ Operations with side effects on iterables:
 * `for_each(action: Callable[[T], Any]) -> FluentIterable[T]`
 * `for_self(action: Callable[[FluentIterable[T]], Any]) -> FluentIterable[T]`
 
-* Terminal operations on iterables:
+Terminal operations on iterables:
 * `to_list() -> List[T]`
 * `to_set() -> Set[T]`
 * `to_frozenset() -> FrozenSet[T]`
