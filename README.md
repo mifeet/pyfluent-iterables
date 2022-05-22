@@ -104,7 +104,7 @@ Here is a simpler motivating example. Notice the order in which you need to read
         .map(str.upper)
         .to_list())
 
-While the last option may be a little longer, it is arguably the most readable.
+While the last option may be a little longer, it is arguably the most readable. Not the least because it't the only version you can read from beggining to end: the first version is needs to be read from the right (`sorted`) to left (`list`), the second needs to be read from `for` and then return to `each.upper()`.
 
 
 ### Related work
