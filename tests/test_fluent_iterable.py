@@ -391,14 +391,14 @@ def test_grouped_can_be_repeated():
 
 def test_returns_randomized_iterable():
     f = fluent([1, 2, 3])
-    randomized  = f.random()
+    randomized = f.random()
     assert_same_elements(f, 1, 2, 3)
-    assert set(randomized) == {1,2,3}
+    assert set(randomized) == {1, 2, 3}
 
 
 def test_returns_random_sample():
     f = fluent([1, 2, 3, 4])
-    sample  = f.sample(3)
+    sample = f.sample(3)
     assert_same_elements(f, 1, 2, 3, 4)
     assert sample.len() == 3
     assert all(i in f for i in sample)
@@ -706,6 +706,26 @@ def test_terminal_operations_do_not_exhaust_iterable(elements, operation: Callab
     f = fluent(elements)
     operation(f)
     assert list(f) == elements
+
+
+######
+# Standard sequence interface support
+######
+# the protocol for defining immutable containers: to make an immutable container, you need only define __len__ and __getitem__ (more on these later).
+def test_iterable_supports_len():
+    f = fluent_of(1, 2, 3)
+    assert len(f) == 3
+    fluent_factory_wrapper = f.map(str)
+    assert len(fluent_factory_wrapper) == 3
+
+    x = (fluent(1)
+         .map(...))
+
+
+def test_iterable_supports_contains():
+    f = fluent_of(1, 2, 3)
+    assert 2 in f
+    assert 9 not in f
 
 
 ######

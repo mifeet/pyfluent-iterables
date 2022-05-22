@@ -160,6 +160,22 @@ def test_side_effect_operations_return_same_iterable(action):
     after = action(before)
     assert after is before
 
+######
+# Standard sequence interface support
+######
+def test_iterable_supports_indexing():
+    f = fluent_dict(a=1, b=2)
+    assert f['a'] == 1
+
+def test_iterable_supports_len():
+    f = fluent_dict(a=1, b=2)
+    assert len(f) == 2
+
+
+def test_iterable_supports_contains():
+    f = fluent_dict(a=1, b=2)
+    assert 'a' in f
+    assert 'x' not in f
 
 ######
 # Helper functions

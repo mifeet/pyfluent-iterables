@@ -332,15 +332,21 @@ class FluentIterable(abc.ABC, Iterable[T]):
         return any(True for _ in self._iterable())
 
     def len(self) -> int:
-        """Returns the number of elements in this iterable"""
-        it = self._iterable()
-        if isinstance(it, Sized):
-            return len(it)
+        """Returns the number of elements in this iterable.
+        Note that evaluation may result in iterating over the iterable if the wrapped collections doesn't implement the Sized contract."""
+        it = self.__iter__()
+        if hasattr(it, "__len__"):
+            return it.__len__()
         else:
             count = 0
             for _ in it:
                 count += 1
             return count
+
+    def __len__(self) -> int:
+        """Returns the number of elements in this iterable.
+           Note that evaluation may result in iterating over the iterable if the wrapped collections doesn't implement the Sized contract."""
+        return self.len()
 
     def sum(self):
         """Returns the sum of elements in this iterable with the sum() built-in function"""
