@@ -30,6 +30,9 @@ It also provides conversion methods to other collections (`to_list()`, `to_tuple
 `FluentMapping`  provides additional methods relevant for dictionaries (`filter_keys()`, `map_values()`, ...).
 
 
+### Installation
+The library is available at [pypi.org](https://pypi.org/project/pyfluent-iterables/). It can be installed with `pip install pyfluent-iterables`
+
 ### Factory methods
 Here are some examples of using the factory methods. Note that they can also be conveniently used for creating an equivalent of collection literals. 
 
