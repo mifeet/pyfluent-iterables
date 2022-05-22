@@ -107,12 +107,12 @@ Here is a simpler motivating example. Notice the order in which you need to read
 While the last option may be a little longer, it is arguably the most readable. Not the least because it's the only version you can read from beggining to end: the first version needs to be read from right (`sorted`) to left (`list`), the second needs to be read from `for` right and then return to `each.upper()` at the beginning.
 
 
-### Related work
 Advantages of _pyfluent-iterables_ over vanilla Python include:
 * **Improved readability.** Flow of execution can be read from start to beginning (unlike comprehensions which need to be read from the middle to end, and then return to the expression at the start).
 * **Better suggestions from IDE.** Rather than remembering what is the full name of a grouping function, one can just select from the methods available on `FluentIterable`.
 * **More idiomatic names** common in functional programming. e.g., `fluent(list_of_lists).flatten()` instead of `itertools.chain.from_iterable(list_of_lists)`.
 
+### Related work
 Similar libraries already exist, such as [fluentpy](https://github.com/dwt/fluent). However, while pyfluent-iterables focus entirely on a rich interface for standard collections,
 _fluentpy_ has broader ambitions which, unfortunately, make it harder to learn and use, and make its usage viral (explicit unwrapping is required). Here are some examples from its documentation: 
 
