@@ -2,6 +2,6 @@
 See https://github.com/mifeet/pyfluent-iterables/blob/main/README.md for more information.
 """
 # Version of the package
-__version__ = "1.0.1"
+__version__ = "1.1.0"
 
 from .fluent import fluent_dict, fluent_of, fluent, FluentIterable, FluentMapping  # noqa
