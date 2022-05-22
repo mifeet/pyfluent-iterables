@@ -31,7 +31,7 @@ It also provides conversion methods to other collections (`to_list()`, `to_tuple
 
 
 ### Installation
-The library is available at [pypi.org](https://pypi.org/project/pyfluent-iterables/). It can be installed with `pip install pyfluent-iterables`
+The library is available at [pypi.org](https://pypi.org/project/pyfluent-iterables/). It can be installed, e.g., with `pip install pyfluent-iterables`.
 
 ### Factory methods
 Here are some examples of using the factory methods. Note that they can also be conveniently used for creating an equivalent of collection literals. 
