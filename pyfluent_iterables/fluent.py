@@ -4,13 +4,31 @@ import random
 from collections import UserDict
 from enum import Enum
 from functools import reduce
-from typing import TypeVar, Iterable, Callable, Mapping, Optional, Any, List, FrozenSet, Set, Sized, Final, Iterator, Tuple, Dict, Union, Literal
+from typing import (
+    TypeVar,
+    Iterable,
+    Callable,
+    Mapping,
+    Optional,
+    Any,
+    List,
+    FrozenSet,
+    Set,
+    Sized,
+    Final,
+    Iterator,
+    Tuple,
+    Dict,
+    Union,
+    Literal,
+    overload,
+)
 
-T = TypeVar('T')
-S = TypeVar('S')
-R = TypeVar('R')
-K = TypeVar('K')
-V = TypeVar('V')
+T = TypeVar("T")
+S = TypeVar("S")
+R = TypeVar("R")
+K = TypeVar("K")
+V = TypeVar("V")
 
 
 def fluent(iterable: Iterable[T]) -> "FluentIterable[T]":
@@ -31,7 +49,9 @@ def fluent_of(*args):
     return FluentIterableWrapper(args)
 
 
-def fluent_dict(mapping_or_iterable: Union[Mapping[K, V], Iterable[Tuple[K, V]], None] = None, **kwargs) -> "FluentMapping[K,V]":
+def fluent_dict(
+    mapping_or_iterable: Union[Mapping[K, V], Iterable[Tuple[K, V]], None] = None, **kwargs
+) -> "FluentMapping[K,V]":
     """
     Creates a FluentMapping wrapping a dict created from arguments.
     The arguments have the same semantics as the built-in dict() method.
@@ -95,7 +115,7 @@ class FluentIterable(abc.ABC, Iterable[T]):
 
     def zip_longest(self, *with_iterables: Iterable, fillvalue=None) -> "FluentIterable[Tuple]":
         """Returns a sequence of tuples built from the elements of this iterable and other given iterables with the same index.
-         The resulting Iterable is as long as the longest input, missing values are substituted with `fillvalue`."""
+        The resulting Iterable is as long as the longest input, missing values are substituted with `fillvalue`."""
         iterable = self._iterable()
         return FluentFactoryWrapper(lambda: itertools.zip_longest(iterable, *with_iterables, fillvalue=fillvalue))
 
@@ -140,7 +160,9 @@ class FluentIterable(abc.ABC, Iterable[T]):
         iterable = self._iterable()
         return FluentFactoryWrapper(lambda: itertools.dropwhile(predicate, iterable))
 
-    def slice(self, start: Optional[int] = None, stop: Optional[int] = None, step: Optional[int] = None) -> "FluentIterable[T]":
+    def slice(
+        self, start: Optional[int] = None, stop: Optional[int] = None, step: Optional[int] = None
+    ) -> "FluentIterable[T]":
         """
         Returns a FluentIterable over selected elements from this iterable.
         The parameters have the same semantics as for Python list slicing (see also the `slice()` function) or for `itertool.islice()`.
@@ -153,7 +175,7 @@ class FluentIterable(abc.ABC, Iterable[T]):
 
     def compress(self, selectors: Iterable[Any]) -> "FluentIterable[T]":
         """Returns a FluentIterable that filters elements from this iterable returning only those that have a corresponding element in `selectors` that evaluates to True.
-         Stops when either the data or selectors iterables has been exhausted."""
+        Stops when either the data or selectors iterables has been exhausted."""
         iterable = self._iterable()
         return FluentFactoryWrapper(lambda: itertools.compress(iterable, selectors))
 
@@ -323,20 +345,23 @@ class FluentIterable(abc.ABC, Iterable[T]):
 
     def empty(self) -> bool:
         """Returns true if and only if this iterable does not contain any elements.
-         Note that if the underlying iterable cannot be consumed repeatedly, this method can consume the first element."""
+        Note that if the underlying iterable cannot be consumed repeatedly, this method can consume the first element.
+        """
         return not self.not_empty()
 
     def not_empty(self) -> bool:
         """Returns true if and only if this iterable contains at least one element.
-        Note that if the underlying iterable cannot be consumed repeatedly, this method can consume the first element."""
+        Note that if the underlying iterable cannot be consumed repeatedly, this method can consume the first element.
+        """
         return any(True for _ in self._iterable())
 
-    def len(self) -> int:
+    def len(self) -> int: 
         """Returns the number of elements in this iterable.
-        Note that evaluation may result in iterating over the iterable if the wrapped collections doesn't implement the Sized contract."""
+        Note that evaluation may result in iterating over the iterable if the wrapped collections doesn't implement the Sized contract.
+        """
         it = self.__iter__()
         if hasattr(it, "__len__"):
-            return it.__len__()
+            return it.__len__()  # type: ignore
         else:
             count = 0
             for _ in it:
@@ -345,7 +370,8 @@ class FluentIterable(abc.ABC, Iterable[T]):
 
     def __len__(self) -> int:
         """Returns the number of elements in this iterable.
-           Note that evaluation may result in iterating over the iterable if the wrapped collections doesn't implement the Sized contract."""
+        Note that evaluation may result in iterating over the iterable if the wrapped collections doesn't implement the Sized contract.
+        """
         return self.len()
 
     def sum(self):
@@ -366,7 +392,11 @@ class FluentIterable(abc.ABC, Iterable[T]):
         """
         return max(self._iterable(), key=key, default=default)
 
-    def reduce(self, function: Callable[[Union[S, T, R], T], R], initial: Union[S, None, Literal[_Sentinel.INITIAL_MISSING]] = _Sentinel.INITIAL_MISSING) -> R:
+    def reduce(
+        self,
+        function: Callable[[Union[S, T, R], T], R],
+        initial: Union[S, None, Literal[_Sentinel.INITIAL_MISSING]] = _Sentinel.INITIAL_MISSING,
+    ) -> R:
         """
         Accumulates value starting with `default`, if given, or the first element otherwise, and applying `function` from to current accumulator value and each element of this iterable.
         E.g., [1,2,3].reduce(lambda x, y: x+y, 0) calculates (((0+1)+2)+3).
@@ -385,6 +415,7 @@ class FluentIterable(abc.ABC, Iterable[T]):
 
 class FluentIterableWrapper(FluentIterable[T]):
     """Implementation that wraps an existing reusable Iterable"""
+
     inner: Final[Iterable]
 
     def __init__(self, iterable: Iterable[T]):
@@ -395,6 +426,7 @@ class FluentIterableWrapper(FluentIterable[T]):
 
     def _iterable(self):
         return self.inner
+
 
 
 class FluentFactoryWrapper(FluentIterable[T]):
@@ -429,13 +461,15 @@ class FluentMapping(UserDict, Mapping[K, V], FluentIterable[K]):
     ######
     def filter_keys(self, predicate: Optional[Callable[[K], Any]] = None) -> "FluentMapping[K,V]":
         """Returns a FluentMapping that wraps dictionary created from this mapping by omitting items
-         for which applying `predicate` to the key evaluates to false, or for which the key itself evaluates to false if predicate is not given."""
+        for which applying `predicate` to the key evaluates to false, or for which the key itself evaluates to false if predicate is not given.
+        """
         predicate = predicate or _identity
         return FluentMapping({k: v for k, v in self.items() if predicate(k)})
 
     def filter_values(self, predicate: Optional[Callable[[V], Any]] = None) -> "FluentMapping[K,V]":
         """Returns a FluentMapping that wraps dictionary created from this mapping by omitting items
-         for which applying `predicate` to the value evaluates to false, or for which the value itself evaluates to false if predicate is not given."""
+        for which applying `predicate` to the value evaluates to false, or for which the value itself evaluates to false if predicate is not given.
+        """
         predicate = predicate or _identity
         return FluentMapping({k: v for k, v in self.items() if predicate(v)})
 
@@ -454,7 +488,9 @@ class FluentMapping(UserDict, Mapping[K, V], FluentIterable[K]):
     def sort_items(self, key: Callable[[K, V], Any], reverse: bool = False) -> "FluentMapping[K, R]":
         """Returns a FluentMapping with the same (key, value) pairs but which has its iterating order determined by the result of the `key` function applied to each pair."""
         # Note that dictionaries preserve insertion order (guaranteed since 3.7, CPython implementation detail before)
-        return FluentMapping({k: self.data[k] for k, v in sorted(self.items(), key=lambda kv_pair: key(*kv_pair), reverse=reverse)})
+        return FluentMapping(
+            {k: self.data[k] for k, v in sorted(self.items(), key=lambda kv_pair: key(*kv_pair), reverse=reverse)}
+        )
 
     ######
     # Operations with side-effects

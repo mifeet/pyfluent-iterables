@@ -43,33 +43,24 @@ def test_fluent_dict_creates_from_kwargs():
 # Stateful intermediate operations
 ######
 def test_filters_keys_with_predicate():
-    f = fluent_dict({
-        "yes1": 1,
-        "NO2": 2,
-        "yes3": 3
-    }).filter_keys(str.islower)
+    f = fluent_dict({"yes1": 1, "NO2": 2, "yes3": 3}).filter_keys(str.islower)
     assert_same_mapping(f, yes1=1, yes3=3)
 
 
 def test_filters_falsy_keys_without_predicate():
-    f = fluent_dict({
-        1: "x",
-        0: "x",
-        "a": "x",
-        None: "x",
-    }).filter_keys()
-    assert_same_mapping(f, {
-        1: "x",
-        "a": "x"
-    })
+    f = fluent_dict(
+        {
+            1: "x",
+            0: "x",
+            "a": "x",
+            None: "x",
+        }
+    ).filter_keys()
+    assert_same_mapping(f, {1: "x", "a": "x"})
 
 
 def test_filters_values_with_predicate():
-    f = fluent_dict({
-        "a": "yes1",
-        "b": "NO2",
-        "c": "yes3"
-    }).filter_values(str.islower)
+    f = fluent_dict({"a": "yes1", "b": "NO2", "c": "yes3"}).filter_values(str.islower)
     assert_same_mapping(f, a="yes1", c="yes3")
 
 
@@ -105,13 +96,16 @@ def test_sorts_map_items():
     assert list(f.keys()) == ["a99", "a1", "a10", "a2"]
 
 
-@pytest.mark.parametrize("operation", [
-    lambda f: f.filter_keys(),
-    lambda f: f.filter_values(),
-    lambda f: f.map_keys(str.upper),
-    lambda f: f.map_values(str.upper),
-    lambda f: f.map_items(str.__add__)
-])
+@pytest.mark.parametrize(
+    "operation",
+    [
+        lambda f: f.filter_keys(),
+        lambda f: f.filter_values(),
+        lambda f: f.map_keys(str.upper),
+        lambda f: f.map_values(str.upper),
+        lambda f: f.map_items(str.__add__),
+    ],
+)
 def test_intermediate_operations_preserve_original_mapping(operation):
     original = {"first": "a", "second": "b", "": ""}
     f = fluent_dict(original)
@@ -151,21 +145,26 @@ def test_for_self_executes_side_effect_on_fluent_mapping():
     assert type(result[0]) == FluentMapping
 
 
-@pytest.mark.parametrize("action", [
-    lambda f: f.for_each_item(lambda k, v: k),
-    lambda f: f.for_self(str),
-])
+@pytest.mark.parametrize(
+    "action",
+    [
+        lambda f: f.for_each_item(lambda k, v: k),
+        lambda f: f.for_self(str),
+    ],
+)
 def test_side_effect_operations_return_same_iterable(action):
     before = fluent_dict(a=1, b=2)
     after = action(before)
     assert after is before
+
 
 ######
 # Standard sequence interface support
 ######
 def test_iterable_supports_indexing():
     f = fluent_dict(a=1, b=2)
-    assert f['a'] == 1
+    assert f["a"] == 1
+
 
 def test_iterable_supports_len():
     f = fluent_dict(a=1, b=2)
@@ -174,8 +173,9 @@ def test_iterable_supports_len():
 
 def test_iterable_supports_contains():
     f = fluent_dict(a=1, b=2)
-    assert 'a' in f
-    assert 'x' not in f
+    assert "a" in f
+    assert "x" not in f
+
 
 ######
 # Helper functions
