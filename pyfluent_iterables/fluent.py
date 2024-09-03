@@ -21,6 +21,7 @@ from typing import (
     Dict,
     Union,
     Literal,
+    cast,
     overload,
 )
 
@@ -59,7 +60,7 @@ def fluent_dict(
     otherwise the result will wrap a new dictionary object.
     """
     if not kwargs and isinstance(mapping_or_iterable, Mapping):
-        return FluentMapping(mapping_or_iterable)
+        return FluentMapping(cast(Mapping[K, V], mapping_or_iterable))
     if mapping_or_iterable is None:
         return FluentMapping[str, Any](kwargs)  # type: ignore[return-value]
     return FluentMapping(dict(mapping_or_iterable, **kwargs))
@@ -191,7 +192,7 @@ class FluentIterable(abc.ABC, Iterable[T]):
     ######
     # Stateful intermediate operations
     ######
-    def sort(self, key: Callable[[T], Any] = None, reverse: bool = False) -> "FluentIterable[T]":
+    def sort(self, key: Optional[Callable[[T], Any]] = None, reverse: bool = False) -> "FluentIterable[T]":
         """
         Returns a FluentIterable containing elements from this iterable sorted by the output of the `key` function applied to all elements of this iterable
         (identity is used if `key` is None). Returns elements in the reverse order if `reverse` is True.
@@ -204,7 +205,7 @@ class FluentIterable(abc.ABC, Iterable[T]):
         # Dictionary is guaranteed to preserve insertion order since 3.7
         return FluentIterableWrapper(dict.fromkeys(self._iterable()))
 
-    def group_by(self, key: Callable[[T], S] = None) -> "FluentMapping[S, List[T]]":
+    def group_by(self, key: Optional[Callable[[T], S]] = None) -> "FluentMapping[S, List[T]]":
         """
         Groups elements of this iterable by values of the `key` function applied to each element (the element itself is used if `key` is not provided).
         Returns a FluentMapping where the key corresponds to the result of the `key` function and value corresponds to a list of all elements which mapped to the respective key.
@@ -376,21 +377,21 @@ class FluentIterable(abc.ABC, Iterable[T]):
 
     def sum(self):
         """Returns the sum of elements in this iterable with the sum() built-in function"""
-        return sum(self._iterable())
+        return sum(self._iterable()) # type: ignore
 
     def min(self, key: Optional[Callable[[T], Any]] = None, default: Optional[T] = None):
         """
         Return the smallest item in this iterable. The arguments have identical meaning to the min() built-in function:
         `key` specifies a function used to extract a comparison key, `default` specifies result value if this iterable is empty.
         """
-        return min(self._iterable(), key=key, default=default)
+        return min(self._iterable(), key=key, default=default) # type: ignore
 
     def max(self, key: Optional[Callable[[T], Any]] = None, default: Optional[T] = None):
         """
         Return the smallest item in this iterable. The arguments have identical meaning to the min() built-in function:
         `key` specifies a function used to extract a comparison key, `default` specifies result value if this iterable is empty.
         """
-        return max(self._iterable(), key=key, default=default)
+        return max(self._iterable(), key=key, default=default) # type: ignore
 
     def reduce(
         self,
