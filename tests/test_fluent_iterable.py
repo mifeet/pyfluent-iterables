@@ -1,6 +1,7 @@
 import itertools
 from operator import mul
 from typing import Iterable, Any, Callable, Mapping
+from unittest.mock import Mock
 
 import pytest
 
@@ -760,6 +761,26 @@ def test_iterable_supports_contains():
     f = fluent_of(1, 2, 3)
     assert 2 in f
     assert 9 not in f
+
+
+######
+# Regression tests
+######
+@pytest.mark.parametrize(
+    "elements,operation",
+    [
+        ([1, 2], lambda f: f.to_list()),
+        ([1, 2], lambda f: f.to_set()),
+        ([1, 2], lambda f: f.to_frozenset()),
+        ([1, 2], lambda f: f.to_tuple()),
+        ([("a", 1), ("b", 2)], lambda f: f.to_dict()),
+    ],
+)
+def test_does_not_invoke_map_transform_unnecessarily(elements, operation: Callable[[FluentIterable], Any]):
+    transform = Mock(side_effect=lambda x: x)
+    f = fluent(elements).map(transform)
+    operation(f)
+    assert transform.call_count == len(elements)
 
 
 ######

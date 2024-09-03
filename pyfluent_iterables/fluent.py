@@ -88,7 +88,7 @@ class FluentIterable(abc.ABC, Iterable[T]):
     def map(self, transform: Callable[[T], R]) -> "FluentIterable[R]":
         """Returns a FluentIterable containing the results of applying the given transform function to each element in this Iterable."""
         iterable = self._iterable()
-        return FluentFactoryWrapper(lambda: map(transform, iterable))
+        return FluentFactoryWrapper(lambda: map(transform, iterable), maybe_sized=iterable)
 
     def filter(self, predicate: Optional[Callable[[T], Any]] = None) -> "FluentIterable[T]":
         """Returns a FluentIterable containing only elements matching the given predicate. If no predicate is given, returns only truthy elements."""
@@ -107,7 +107,7 @@ class FluentIterable(abc.ABC, Iterable[T]):
     def enumerate(self, start: int = 0) -> "FluentIterable[Tuple[int, T]]":
         """Returns a FluentIterable over pairs of (index, element) for elements in the original Iterable. Indices start with the value of `start`."""
         iterable = self._iterable()
-        return FluentFactoryWrapper(lambda: enumerate(iterable, start=start))
+        return FluentFactoryWrapper(lambda: enumerate(iterable, start=start), maybe_sized=iterable)
 
     def zip(self, *with_iterables: Iterable) -> "FluentIterable[Tuple]":
         """Returns a sequence of tuples built from the elements of this iterable and other given iterables with the same index. The resulting Iterable ends as soon as the shortest input Iterable ends."""
@@ -229,10 +229,10 @@ class FluentIterable(abc.ABC, Iterable[T]):
         """
         iterable = self._iterable()
         if hasattr(iterable, "__reversed__"):
-            return FluentFactoryWrapper(lambda: iterable.__reversed__())  # type: ignore[attr-defined]
+            return FluentFactoryWrapper(lambda: iterable.__reversed__(), maybe_sized=iterable)  # type: ignore[attr-defined]
         else:
             copy = list(iterable)
-            return FluentFactoryWrapper(lambda: copy.__reversed__())
+            return FluentFactoryWrapper(lambda: copy.__reversed__(), maybe_sized=copy)
 
     def grouped(self, n: int) -> "FluentIterable[List[T]]":
         """
@@ -356,13 +356,13 @@ class FluentIterable(abc.ABC, Iterable[T]):
         """
         return any(True for _ in self._iterable())
 
-    def len(self) -> int: 
+    def len(self) -> int:
         """Returns the number of elements in this iterable.
         Note that evaluation may result in iterating over the iterable if the wrapped collections doesn't implement the Sized contract.
         """
         it = self.__iter__()
         if hasattr(it, "__len__"):
-            return it.__len__()  # type: ignore
+            return cast(Sized, it).__len__()
         else:
             count = 0
             for _ in it:
@@ -370,28 +370,31 @@ class FluentIterable(abc.ABC, Iterable[T]):
             return count
 
     def __len__(self) -> int:
-        """Returns the number of elements in this iterable.
-        Note that evaluation may result in iterating over the iterable if the wrapped collections doesn't implement the Sized contract.
-        """
-        return self.len()
+        """Returns the number of elements in this iterable, if it's known for the underlying iterable. Otherwise throws TypeError."""
+        it = self.__iter__()
+        if hasattr(it, "__len__"):
+            return cast(Sized, it).__len__()
+        # Raising exception instead of defering to len().
+        # This is necessary, e.g., to work around undocumented behavior of len() which assumes __len__() is present only if size is known in advance
+        raise TypeError(f"object of type '{type(self).__name__}' has no len()")
 
     def sum(self):
         """Returns the sum of elements in this iterable with the sum() built-in function"""
-        return sum(self._iterable()) # type: ignore
+        return sum(self._iterable())  # type: ignore
 
     def min(self, key: Optional[Callable[[T], Any]] = None, default: Optional[T] = None):
         """
         Return the smallest item in this iterable. The arguments have identical meaning to the min() built-in function:
         `key` specifies a function used to extract a comparison key, `default` specifies result value if this iterable is empty.
         """
-        return min(self._iterable(), key=key, default=default) # type: ignore
+        return min(self._iterable(), key=key, default=default)  # type: ignore
 
     def max(self, key: Optional[Callable[[T], Any]] = None, default: Optional[T] = None):
         """
         Return the smallest item in this iterable. The arguments have identical meaning to the min() built-in function:
         `key` specifies a function used to extract a comparison key, `default` specifies result value if this iterable is empty.
         """
-        return max(self._iterable(), key=key, default=default) # type: ignore
+        return max(self._iterable(), key=key, default=default)  # type: ignore
 
     def reduce(
         self,
@@ -429,15 +432,21 @@ class FluentIterableWrapper(FluentIterable[T]):
         return self.inner
 
 
-
 class FluentFactoryWrapper(FluentIterable[T]):
     """Implementation for cases where a known factory to a non-reusable Iterator is available"""
 
-    def __init__(self, factory: Callable[[], Iterator[T]]):
+    def __init__(self, factory: Callable[[], Iterator[T]], *, maybe_sized: Optional[Iterable] = None):
         self._factory = factory
+        self._maybe_sized = maybe_sized
 
     def __iter__(self) -> Iterator[T]:
         return self._factory()
+
+    def __len__(self) -> int:
+        """Returns the number of elements in this iterable, if it's known for the underlying iterable. Otherwise throws TypeError."""
+        if hasattr(self._maybe_sized, "__len__"):
+            return cast(Sized, self._maybe_sized).__len__()
+        return super().__len__()
 
     def _iterable(self):
         return self
