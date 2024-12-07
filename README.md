@@ -4,13 +4,15 @@ This library provides a thin wrapper over Python containers (collections) and [i
 
 Here is a real-world usage example:
     
-    (fluent(get_all_jobs_from_api())                # Fetch list of CI/CD jobs and wrap result in a fluent iterable
-      .map(Job.parse_obj)                           # Parse the response to a domain object
-      .group_by(lambda job: job.name.split(" ")[0]) # Group jobs by issue number in name prefix 
-      .map_values(JobsSummary)                      # Create a summary object from each job group
-      .sort_items(lambda job, stats: stats.failed_rate, reverse=True)
-                                                    # Sort job summaries by failure rate
-      .for_each_item(print))                        # Print job summaries
+```python
+(fluent(get_all_jobs_from_api())                # Fetch list of CI/CD jobs and wrap result in a fluent iterable
+  .map(Job.parse_obj)                           # Parse the response to a domain object
+  .group_by(lambda job: job.name.split(" ")[0]) # Group jobs by issue number in name prefix 
+  .map_values(JobsSummary)                      # Create a summary object from each job group
+  .sort_items(lambda job, stats: stats.failed_rate, reverse=True)
+                                                # Sort job summaries by failure rate
+  .for_each_item(print))                        # Print job summaries
+```
 
 ## Usage
 The API provides two main wrappers and associated factory functions:
@@ -20,10 +22,12 @@ The API provides two main wrappers and associated factory functions:
 
 Each wrapper then provides methods for transforming the contained elements. Methods follow the [fluent API](https://www.martinfowler.com/bliki/FluentInterface.html) style so that calls can be chained and IDE can effectively automatically suggest methods. Since Python doesn't allow multiline chaining of methods without escaping newlines, the recommended approach for longer chain expressions is to wrap them in parentheses:
 
-    `result = (fluent_of(1,2,3)
-               .map(...)
-               ...
-               .max())
+```python
+result = (fluent_of(1,2,3)
+          .map(...)
+          ...
+         .max())
+```
 
 The API largely mirrors the standard library, e.g., collection builtins (`map()`, `any()`, ...), `itertools` and `functools` packages.
 It also provides conversion methods to other collections (`to_list()`, `to_tuple()`, `to_dict()`, ...), convenience methods common for functional-style programming (`flat_map()`, `flatten()`), and methods for including side-effects in the call chain (`for_each()`).
@@ -36,73 +40,79 @@ The library is available at [pypi.org](https://pypi.org/project/pyfluent-iterabl
 ### Factory methods
 Here are some examples of using the factory methods. Note that they can also be conveniently used for creating an equivalent of collection literals. 
 
-    # Fluent iterable API for a collection, an iterable, or a generator
-    fluent([1,2,3])            # FluentIterable wrapping a list
-    fluent((1,2,3))            # FluentIterable wrapping a tuple
-    generator = (i for i in range(3))
-    fluent(generator)          # FluentIterable wrapping a generator
-    fluent(itertools.count(0)) # FluentIterable wrapping an infinite iterable 
+```python
+# Fluent iterable API for a collection, an iterable, or a generator
+fluent([1,2,3])            # FluentIterable wrapping a list
+fluent((1,2,3))            # FluentIterable wrapping a tuple
+generator = (i for i in range(3))
+fluent(generator)          # FluentIterable wrapping a generator
+fluent(itertools.count(0)) # FluentIterable wrapping an infinite iterable 
 
-    # Fluent iterable API from given elements
-    fluent_of()                # empty FluentIterable
-    fluent_of(1, 2, 3, 4)      # FluentIterable wrapping [1, 2, 3, 4] list
+# Fluent iterable API from given elements
+fluent_of()                # empty FluentIterable
+fluent_of(1, 2, 3, 4)      # FluentIterable wrapping [1, 2, 3, 4] list
 
-    # Fluent Mapping API 
-    fluent({'a': 1, 'b': 2})   # FluentMapping wrapping a dictionary
-    fluent_dict({'a': 1})      # FluentMapping wrapping a dictionary
-    fluent_dict({'a': 1}, b=2) # FluentMapping combining a dictionary and explicitly given kwargs
-    fluent_dict(a=1, b=2) # FluentMapping from given kwargs
-    fluent_dict([("a", 1), ("b", 2)]) # FluentMapping from a list of (key, value) pairs
-
+# Fluent Mapping API 
+fluent({'a': 1, 'b': 2})   # FluentMapping wrapping a dictionary
+fluent_dict({'a': 1})      # FluentMapping wrapping a dictionary
+fluent_dict({'a': 1}, b=2) # FluentMapping combining a dictionary and explicitly given kwargs
+fluent_dict(a=1, b=2) # FluentMapping from given kwargs
+fluent_dict([("a", 1), ("b", 2)]) # FluentMapping from a list of (key, value) pairs
+```
 
 ### Compatibility with standard containers
 Both FluentIterable and FluentMapping support standard immutable container contracts with one exception: FluentIterable isn't subscriptable (with `[start:stop:step]`) yet; use the `slice()` method instead.
 
-    len(fluent_of(1,2,3))       # 3
-    2 in fluent_of(1,2,3)       # True
-    fluent_dict(a=1, b=2)['b']  # 2
-    
-    fluent_of(1,2,3)[1:2]           # Doesn't work
-    fluent_of(1,2,3).slice(1,2)     # [2]
-    fluent_of(1,2,3).to_list()[1:2] # also [2]
+```python
+len(fluent_of(1,2,3))       # 3
+2 in fluent_of(1,2,3)       # True
+fluent_dict(a=1, b=2)['b']  # 2
 
+fluent_of(1,2,3)[1:2]           # Doesn't work
+fluent_of(1,2,3).slice(1,2)     # [2]
+fluent_of(1,2,3).to_list()[1:2] # also [2]
+```
 
 ## Motivation
 Python provides list and dictionary comprehensions out of the box. Relying on them is probably the most idiomatic for collection manipulation in Python.
 However, more complex operations expressed in comprehensions and standard library modules can be tough to read. Here is the same functionality as above expressed with pure Python: 
 
-    jobs = [Job.parse_obj(job) for job in get_all_jobs_from_api]   # Fetch list of CI/CD jobs and parse the response to a domain object
-    jobs.sort(key=lambda job: job.name)                            # itertools.groupby() requires items to be sorted
-    jobs_by_issue = itertools.groupby(jobs, key=lambda job: job.name.split(" ")[0])
-                                                                   # Group jobs by issue number in name prefix
-    job_summaries = []
-    for issue, jobs_iter in jobs_by_issue:
-        job_summaries.append((issue, JobSummary(list(jobs_iter)))) # Create a summary object from each job group
-    job_summaries.sort(key=lambda pair: pair[1].failed_rate, reverse=True)
-                                                                   # Sort job summaries by failure rate
-    for issue, summary in job_summaries: 
-        print(issue, summary)                                      # Print job summaries
+```python
+jobs = [Job.parse_obj(job) for job in get_all_jobs_from_api]   # Fetch list of CI/CD jobs and parse the response to a domain object
+jobs.sort(key=lambda job: job.name)                            # itertools.groupby() requires items to be sorted
+jobs_by_issue = itertools.groupby(jobs, key=lambda job: job.name.split(" ")[0])
+                                                               # Group jobs by issue number in name prefix
+job_summaries = []
+for issue, jobs_iter in jobs_by_issue:
+    job_summaries.append((issue, JobSummary(list(jobs_iter)))) # Create a summary object from each job group
+job_summaries.sort(key=lambda pair: pair[1].failed_rate, reverse=True)
+                                                               # Sort job summaries by failure rate
+for issue, summary in job_summaries: 
+    print(issue, summary)                                      # Print job summaries
+```
 
 Judge the readability and convenience of the two implementations for yourself.
 
 Here is a simpler motivating example. Notice the order in which you need to read the pieces of code to follow the execution:
 
-    # Python without comprehensions
-    list(
-        map(
-            str.upper, 
-            sorted(["ab", "cd"], reverse=True)))
+```python
+# Python without comprehensions
+list(
+    map(
+        str.upper, 
+        sorted(["ab", "cd"], reverse=True)))
 
-    # Python with comprehensions
-    [each.upper()
-        for each 
-        in sorted(["ab", "cd"], reverse=True)]
+# Python with comprehensions
+[each.upper()
+    for each 
+    in sorted(["ab", "cd"], reverse=True)]
 
-    # pyfluent-iterables
-    (fluent_of("ab", "cd")
-        .sorted(reverse=True)
-        .map(str.upper)
-        .to_list())
+# pyfluent-iterables
+(fluent_of("ab", "cd")
+    .sorted(reverse=True)
+    .map(str.upper)
+    .to_list())
+```
 
 While the last option may be a little longer, it is arguably the most readable. Not the least because it's the only version you can read from beggining to end: the first version needs to be read from right (`sorted`) to left (`list`), the second needs to be read from `for` right and then return to `each.upper()` at the beginning.
 
@@ -116,9 +126,11 @@ Advantages of _pyfluent-iterables_ over vanilla Python include:
 Similar libraries already exist, such as [fluentpy](https://github.com/dwt/fluent). However, while pyfluent-iterables focus entirely on a rich interface for standard collections,
 _fluentpy_ has broader ambitions which, unfortunately, make it harder to learn and use, and make its usage viral (explicit unwrapping is required). Here are some examples from its documentation: 
 
-    # Examples from fluentpy library for comparison
-    _(range(3)).map(_(dict).curry(id=_, delay=0)._)._   
-    lines = _.lib.sys.stdin.readlines()._
+```python
+# Examples from fluentpy library for comparison
+_(range(3)).map(_(dict).curry(id=_, delay=0)._)._   
+lines = _.lib.sys.stdin.readlines()._
+```
 
 ## Design principles
 * **Prioritize readability**. Principle of the least surprise; the reader should be able to understand the meaning of code without any prior knowledge.
@@ -210,6 +222,8 @@ Operations with side effects on dictionaries/mappings:
 The library implements the most commonly used operations, however, it is not intended to be exhaustive. 
 Methods from richer libraries, such as [more-itertools](https://more-itertools.readthedocs.io/en/stable/), can be used together with pyfluent-iterables using the `apply_transformation()` method: 
 
-    (fluent_of(1,2,3)
-        .apply_transformation(more_itertools.chunked, 2)
-        .to_list()) # [(1, 2), (2, 3)]
+```python
+(fluent_of(1,2,3)
+    .apply_transformation(more_itertools.chunked, 2)
+    .to_list()) # Produces [(1, 2), (2, 3)]
+```
