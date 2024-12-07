@@ -10,7 +10,7 @@ readme = 'README.md'
 keywords = ["wrapper", "fluent", "interface", "functional", "collections"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.10"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^0.950"
