@@ -428,6 +428,15 @@ class FluentIterableWrapper(FluentIterable[T]):
     def __iter__(self) -> Iterator[T]:
         return self.inner.__iter__()
 
+    def __len__(self) -> int:
+        """Returns the number of elements in this iterable, if it's known for the underlying iterable. Otherwise throws TypeError."""
+        if hasattr(self.inner, "__len__"):
+            return cast(Sized, self.inner).__len__()
+        # Raising exception instead of defering to len().
+        # This is necessary, e.g., to work around undocumented behavior of len() which assumes __len__() is present only if size is known in advance
+        raise TypeError(f"object of type '{type(self).__name__}' has no len()")
+
+
     def _iterable(self):
         return self.inner
 
