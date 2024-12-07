@@ -2,6 +2,7 @@ import itertools
 from operator import mul
 from typing import Iterable, Any, Callable, Mapping
 from unittest.mock import Mock
+import more_itertools
 
 import pytest
 
@@ -427,6 +428,33 @@ def test_to_fluent_dict_creates_fluent_mapping(elements, expected):
     f = fluent(elements).to_fluent_dict()
     assert_same_mapping(f, expected=expected)
     assert isinstance(f, FluentMapping)
+
+
+def test_apply_transform_with_no_args():
+    def transform(it):
+        return (x * 2 for x in it)
+
+    f = fluent_of(1, 2, 3).apply_transformation(transform)
+    assert_same_elements(f, 2, 4, 6)
+
+
+@pytest.mark.parametrize(
+    "iterable,transform,args,kwargs,expected",
+    [
+        ([1, 2, 3], itertools.islice, (2,), {}, [1, 2]),
+        ([1, 2, 3], itertools.islice, (1, None), {}, [2, 3]),
+        ([1, 2, 3], itertools.islice, (0, None, 2), {}, [1, 3]),
+        ([1, 2, 3], itertools.accumulate, (), {"initial": 10}, [10, 11, 13, 16]),
+    ],
+)
+def test_apply_transformation_with_args_and_kwargs(iterable, transform, args, kwargs, expected):
+    f = fluent(iterable).apply_transformation(transform, *args, **kwargs)
+    assert_same_elements(f, *expected)
+
+
+def test_apply_transformation_with_more_itertools():  # see issue #3
+    f = fluent_of(1, 2, 3).apply_transformation(more_itertools.windowed, 2)
+    assert_same_elements(f, (1, 2), (2, 3))
 
 
 @pytest.mark.parametrize(

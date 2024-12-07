@@ -170,6 +170,7 @@ Stateful intermediate operations on iterables:
 * `random() -> FluentIterable[T]`
 * `sample(k: int) -> FluentIterable[T]`
 * `to_fluent_dict() -> FluentMapping"`
+* `apply_transformation(self, transformation: Callable[Concatenate[Iterable[T], P], Iterator[R]],  *args: P.args, **kwargs: P.kwargs) -> "FluentIterable[R]"`
 
 Operations with side effects on iterables:
 * `for_each(action: Callable[[T], Any]) -> FluentIterable[T]`
@@ -204,3 +205,11 @@ Stateful intermediate operations on dictionaries/mappings:
 Operations with side effects on dictionaries/mappings:
 * `for_each_item(action: Callable[[K, V], Any]) -> FluentMapping[K,V]`
 * `for_self(action: Callable[[FluentMapping[K,V]], Any]) -> FluentMapping[K,V]`
+
+### Extensibility
+The library implements the most commonly used operations, however, it is not intended to be exhaustive. 
+Methods from richer libraries, such as [more-itertools](https://more-itertools.readthedocs.io/en/stable/), can be used together with pyfluent-iterables using the `apply_transformation()` method: 
+
+    (fluent_of(1,2,3)
+        .apply_transformation(more_itertools.chunked, 2)
+        .to_list()) # [(1, 2), (2, 3)]

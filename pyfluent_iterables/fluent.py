@@ -5,6 +5,8 @@ from collections import UserDict
 from enum import Enum
 from functools import reduce
 from typing import (
+    Concatenate,
+    ParamSpec,
     TypeVar,
     Iterable,
     Callable,
@@ -30,6 +32,7 @@ S = TypeVar("S")
 R = TypeVar("R")
 K = TypeVar("K")
 V = TypeVar("V")
+P = ParamSpec("P")
 
 
 def fluent(iterable: Iterable[T]) -> "FluentIterable[T]":
@@ -275,6 +278,16 @@ class FluentIterable(abc.ABC, Iterable[T]):
         """
         return FluentMapping(self.to_dict())
 
+    def apply_transformation(
+        self, transformation: Callable[Concatenate[Iterable[T], P], Iterator[R]], *args: P.args, **kwargs: P.kwargs
+    ) -> "FluentIterable[R]":
+        """
+        Applies a given transformation to this iterable and returns the result wrapped as a FluentIterable.
+        Any extra args or kwargs accepted by the transformation function are passed through.
+        """
+        iterable = self._iterable()
+        return FluentFactoryWrapper(lambda: transformation(iterable, *args, **kwargs))
+
     ######
     # Operations with side-effects
     ######
@@ -435,7 +448,6 @@ class FluentIterableWrapper(FluentIterable[T]):
         # Raising exception instead of defering to len().
         # This is necessary, e.g., to work around undocumented behavior of len() which assumes __len__() is present only if size is known in advance
         raise TypeError(f"object of type '{type(self).__name__}' has no len()")
-
 
     def _iterable(self):
         return self.inner
