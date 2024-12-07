@@ -40,4 +40,4 @@ push = false
 
 [tool.black]
 line-length = 120
-target-version = ['py37']
+target-version = ['py310']
