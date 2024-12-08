@@ -1,6 +1,5 @@
 name: Release
 on:
-  pull_request:
   release:
     types: [ released ]
 
@@ -78,10 +77,12 @@ jobs:
             ./dist/*.whl
 
       - name: Upload artifact signatures to GitHub Release
+        if: github.event_name == 'release'
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           gh release upload --repo '${{ github.repository }}' '${{ github.ref_name }}' dist/* 
 
-      # - name: Publish distribution 📦 to PyPI
-        # uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Publish distribution 📦 to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        if: github.event_name == 'release'
