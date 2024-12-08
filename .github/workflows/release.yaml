@@ -1,6 +1,8 @@
 name: Release
 on:
   pull_request:
+  release:
+    types: [ released ]
 
 jobs:
   tests:
@@ -21,7 +23,7 @@ jobs:
           pipx install poetry
           poetry install --no-interaction
           poetry run pytest
-          poetry run black --check
+          poetry run black --check .
 
   build:
     name: 'Build'
@@ -60,6 +62,7 @@ jobs:
       url: https://pypi.org/p/pyfluent-iterables
     permissions:
       id-token: write
+      contents: write
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -67,5 +70,19 @@ jobs:
           name: python-package-distributions
           path: dist/
 
+      - name: Sign the dists with Sigstore
+        uses: sigstore/gh-action-sigstore-python@v3.0.0
+        with:
+          inputs: >-
+            ./dist/*.tar.gz
+            ./dist/*.whl
+
+      - name: Upload artifact signatures to GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          ls dist
+#          gh release upload '${{ github.ref_name }}' dist/* --repo '${{ github.repository }}'
+
       # - name: Publish distribution 📦 to PyPI
-      #   uses: pypa/gh-action-pypi-publish@release/v1
+        # uses: pypa/gh-action-pypi-publish@release/v1

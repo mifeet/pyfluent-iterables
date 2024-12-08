@@ -28,6 +28,6 @@ jobs:
 
       - name: Run type check
         run: |
-          poetry run black --check
+          poetry run black --check .
 
 
