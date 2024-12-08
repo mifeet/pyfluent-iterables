@@ -1,0 +1,71 @@
+name: Release
+on:
+  pull_request:
+
+jobs:
+  tests:
+    name: 'Unit tests & type check'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          
+      - name: Run tests
+        run: |
+          set -euo pipefail
+          pipx install poetry
+          poetry install --no-interaction
+          poetry run pytest
+          poetry run black --check
+
+  build:
+    name: 'Build'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pipx install poetry
+          poetry install --no-interaction
+
+      - name: Build package
+        run: poetry build
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+  release:
+    name: 'Release'
+    runs-on: ubuntu-latest
+    needs:
+      - build
+      - tests
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pyfluent-iterables
+    permissions:
+      id-token: write
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      # - name: Publish distribution 📦 to PyPI
+      #   uses: pypa/gh-action-pypi-publish@release/v1
