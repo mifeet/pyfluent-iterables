@@ -224,6 +224,6 @@ Methods from richer libraries, such as [more-itertools](https://more-itertools.r
 
 ```python
 (fluent_of(1,2,3)
-    .apply_transformation(more_itertools.chunked, 2)
+    .apply_transformation(more_itertools.windowed, 2)
     .to_list()) # Produces [(1, 2), (2, 3)]
 ```
